@@ -9,10 +9,18 @@ import UserPool from './cognitoConfig';
 import './css/style.css';
 import Popup from './components/Popup';
 
+type FormType = {
+  first_name: string;
+  last_name: string;
+  state: string;
+  affiliation: string;
+  email: string;
+};
+
 const App = () => {
   const [location, setLocation] = useState<{ State: string; Affiliation: string }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const initialValues = {
+  const initialValues: FormType = {
     first_name: '',
     last_name: '',
     state: location[0]?.State,
@@ -39,16 +47,23 @@ const App = () => {
       });
   }, []);
 
-  const onSubmit = ({ email, ...values }) => {
+  const onSubmit = ({ email, ...values }: FormType) => {
     const attributes = Object.keys(values).map((key) => {
+      const personKey = key as keyof {
+        first_name: string;
+        last_name: string;
+        state: string;
+        affiliation: string;
+      };
+
       return {
-        Name: `custom:${key}`,
-        Value: values[key] || '',
+        Name: `custom:${personKey}`,
+        Value: values[personKey] || '',
       };
     });
     const attributeList = attributes.map((attr) => new CognitoUserAttribute(attr));
 
-    UserPool.signUp(email, 'Aa-123123', attributeList, null, (err, data) => {
+    UserPool.signUp(email, 'Aa-123123', attributeList, [], (err, data) => {
       if (err) {
         setShowError(err.message);
       } else {
